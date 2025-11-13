@@ -127,6 +127,63 @@ exports.cancelAppointment = async (req, res) => {
   }
 };
 
+// Confirm appointment (Admin/Staff only)
+exports.confirmAppointment = async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).send({ message: 'Appointment not found.' });
+    }
+
+    await Appointment.updateStatus(req.params.id, 'confirmed');
+    res.status(200).send({ message: 'Appointment confirmed successfully!' });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+// Decline appointment with message (Admin/Staff only)
+exports.declineAppointment = async (req, res) => {
+  const { decline_message } = req.body;
+
+  if (!decline_message || !decline_message.trim()) {
+    return res.status(400).send({ message: 'Decline message is required.' });
+  }
+
+  try {
+    const db = require('../config/db.config');
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).send({ message: 'Appointment not found.' });
+    }
+
+    // Update status to declined and save the decline message
+    await db.query(
+      'UPDATE appointments SET status = ?, notes = CONCAT(COALESCE(notes, ""), "\n\nDecline Reason: ", ?) WHERE id = ?',
+      ['declined', decline_message, req.params.id]
+    );
+
+    res.status(200).send({ message: 'Appointment declined successfully!' });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
+// Mark payment as paid (Admin/Staff only)
+exports.markAsPaid = async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).send({ message: 'Appointment not found.' });
+    }
+
+    await Appointment.updatePaymentStatus(req.params.id, 'paid', null);
+    res.status(200).send({ message: 'Payment marked as paid successfully!' });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 // Update payment status (Admin/Staff only)
 exports.updatePaymentStatus = async (req, res) => {
   const { payment_status, payment_reference } = req.body;

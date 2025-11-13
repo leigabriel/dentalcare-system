@@ -19,6 +19,9 @@ module.exports = function(app) {
   // GET /api/appointments/booked-slots - Get booked time slots
   app.get('/api/appointments/booked-slots', controller.getBookedSlots);
 
+  // GET /api/appointments/all - Get all appointments (admin/staff only)
+  app.get('/api/appointments/all', [verifyToken, isAdminOrStaff], controller.getAllAppointments);
+
   // GET /api/appointments - Get all appointments (admin/staff only)
   app.get('/api/appointments', [verifyToken, isAdminOrStaff], controller.getAllAppointments);
 
@@ -31,8 +34,17 @@ module.exports = function(app) {
   // PUT /api/appointments/:id/status - Update appointment status (admin/staff only)
   app.put('/api/appointments/:id/status', [verifyToken, isAdminOrStaff], controller.updateAppointmentStatus);
 
+  // PUT /api/appointments/:id/confirm - Confirm appointment (admin/staff only)
+  app.put('/api/appointments/:id/confirm', [verifyToken, isAdminOrStaff], controller.confirmAppointment);
+
+  // PUT /api/appointments/:id/decline - Decline appointment with message (admin/staff only)
+  app.put('/api/appointments/:id/decline', [verifyToken, isAdminOrStaff], controller.declineAppointment);
+
   // PUT /api/appointments/:id/cancel - Cancel appointment
   app.put('/api/appointments/:id/cancel', verifyToken, controller.cancelAppointment);
+
+  // PUT /api/appointments/:id/mark-paid - Mark payment as paid (admin/staff only)
+  app.put('/api/appointments/:id/mark-paid', [verifyToken, isAdminOrStaff], controller.markAsPaid);
 
   // PUT /api/appointments/:id/payment - Update payment status (admin/staff only)
   app.put('/api/appointments/:id/payment', [verifyToken, isAdminOrStaff], controller.updatePaymentStatus);

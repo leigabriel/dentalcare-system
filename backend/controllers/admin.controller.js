@@ -80,6 +80,72 @@ exports.createStaffAccount = async (req, res) => {
   }
 };
 
+// Update staff account
+exports.updateStaffAccount = async (req, res) => {
+  const { first_name, last_name, email, password, role } = req.body;
+
+  // Validate role
+  if (role && role !== 'admin' && role !== 'staff') {
+    return res.status(400).send({ message: 'Invalid role. Must be admin or staff.' });
+  }
+
+  try {
+    const db = require('../config/db.config');
+    
+    // Check if user exists
+    const [users] = await db.query('SELECT id FROM users WHERE id = ?', [req.params.id]);
+    if (users.length === 0) {
+      return res.status(404).send({ message: 'User not found.' });
+    }
+
+    // Check if email is being changed and already exists
+    if (email) {
+      const [existingEmail] = await db.query('SELECT id FROM users WHERE email = ? AND id != ?', [email, req.params.id]);
+      if (existingEmail.length > 0) {
+        return res.status(400).send({ message: 'Email is already in use.' });
+      }
+    }
+
+    // Build update query
+    let updateFields = [];
+    let updateValues = [];
+
+    if (first_name) {
+      updateFields.push('first_name = ?');
+      updateValues.push(first_name);
+    }
+    if (last_name) {
+      updateFields.push('last_name = ?');
+      updateValues.push(last_name);
+    }
+    if (email) {
+      updateFields.push('email = ?');
+      updateValues.push(email);
+    }
+    if (role) {
+      updateFields.push('role = ?');
+      updateValues.push(role);
+    }
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateFields.push('password = ?');
+      updateValues.push(hashedPassword);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).send({ message: 'No fields to update.' });
+    }
+
+    updateValues.push(req.params.id);
+    const query = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
+    await db.query(query, updateValues);
+
+    res.status(200).send({ message: 'User updated successfully!' });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
+  }
+};
+
 // Update user role
 exports.updateUserRole = async (req, res) => {
   const { role } = req.body;

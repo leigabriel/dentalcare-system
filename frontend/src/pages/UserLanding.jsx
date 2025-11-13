@@ -1,11 +1,17 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
+import { FaTooth } from 'react-icons/fa';
 
 const UserLanding = () => {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Redirect admin and staff to their dashboards
+  if (user && (user.role === 'admin' || user.role === 'staff')) {
+    return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/staff/dashboard'} replace />;
+  }
 
   const handleLogout = () => {
     logout();
@@ -15,11 +21,12 @@ const UserLanding = () => {
   return (
     <div className="bg-blue-950">
       {/* Fixed Header Navigation */}
-      <header className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-6xl px-4">
-        <nav className="flex items-center justify-between gap-6 px-6 py-3 bg-white/10 backdrop-blur-md rounded-full shadow-xl">
+      <header className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50">
+        <nav aria-label="Global" className="flex items-center justify-center gap-6 px-6 py-3 bg-white/10 backdrop-blur-md rounded-full shadow-xl">
           <div className="flex lg:flex-1">
             <Link to="/" className="-m-1.5 p-1.5">
-              <span className="text-2xl font-bold text-white">DENTALCARE</span>
+              <span className="sr-only">DENTALCARE</span>
+              <FaTooth className="h-6 w-auto text-white" />
             </Link>
           </div>
 
@@ -31,7 +38,7 @@ const UserLanding = () => {
               className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-200"
             >
               <span className="sr-only">Open main menu</span>
-              <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <svg className="size-8" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
             </button>
@@ -39,22 +46,22 @@ const UserLanding = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex lg:gap-x-12">
-            <a href="#hero" className="text-lg font-semibold text-white hover:text-blue-400">Home</a>
-            <a href="#services" className="text-lg font-semibold text-white hover:text-blue-400">Services</a>
-            <a href="#about" className="text-lg font-semibold text-white hover:text-blue-400">About</a>
-            <a href="#blog" className="text-lg font-semibold text-white hover:text-blue-400">Blog</a>
-            <a href="#contact" className="text-lg font-semibold text-white hover:text-blue-400">Contact</a>
-            <Link to="/book" className="text-lg font-semibold text-white hover:text-blue-400">Book Now</Link>
+            <a href="#hero" className="text-lg/6 font-semibold text-white hover:text-blue-400">Home</a>
+            <a href="#services" className="text-lg/6 font-semibold text-white hover:text-blue-400">Services</a>
+            <a href="#about" className="text-lg/6 font-semibold text-white hover:text-blue-400">About</a>
+            <a href="#blog" className="text-lg/6 font-semibold text-white hover:text-blue-400">Blog</a>
+            <a href="#contact" className="text-lg/6 font-semibold text-white hover:text-blue-400">Contact</a>
+            <Link to="/book" className="text-lg/6 font-semibold text-white hover:text-blue-400">Book Now</Link>
           </div>
 
           {/* Auth Buttons */}
-          <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-x-3 items-center">
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end relative gap-x-3 items-center whitespace-nowrap">
             {user ? (
               <div className="group relative">
-                <Link to="/profile" className="flex items-center gap-x-2 text-lg uppercase font-semibold text-white hover:text-blue-400">
-                  <img src="https://cdn-icons-png.flaticon.com/128/5393/5393061.png" alt="Profile" className="h-6 w-6 rounded-full invert" />
+                <Link to="/profile" className="flex items-center gap-x-2 text-lg/6 uppercase font-semibold text-white hover:text-blue-400">
+                  <img src="https://cdn-icons-png.flaticon.com/128/5393/5393061.png" alt="Profile" className="h-6 w-6 rounded-full object-cover invert" />
                 </Link>
-                <div className="absolute right-0 mt-2 w-28 bg-gray-800 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200">
+                <div className="absolute mt-2 w-28 bg-gray-800 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200">
                   <Link to="/profile" className="block px-4 py-2 text-white hover:bg-gray-700 rounded-t-lg">Profile</Link>
                   <button onClick={() => setShowLogoutModal(true)} className="w-full text-left px-4 py-2 text-white hover:bg-red-700 rounded-b-lg">Log out</button>
                 </div>
@@ -75,34 +82,35 @@ const UserLanding = () => {
             <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-blue-950 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-100/10">
               <div className="flex items-center justify-between">
                 <Link to="/" className="-m-1.5 p-1.5">
-                  <span className="text-2xl font-bold text-white">🦷 DENTALCARE</span>
+                  <span className="sr-only">DENTALCARE</span>
+                  <FaTooth className="h-8 w-auto text-white" />
                 </Link>
                 <button type="button" onClick={() => setMobileMenuOpen(false)} className="-m-2.5 rounded-md p-2.5 text-gray-200">
                   <span className="sr-only">Close menu</span>
-                  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <svg className="size-8" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
               <div className="mt-6 flow-root">
                 <div className="-my-6 divide-y divide-white/10">
                   <div className="space-y-2 py-6">
-                    <a href="#services" className="-mx-3 block rounded-lg px-3 py-2 text-lg font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Services</a>
-                    <a href="#about" className="-mx-3 block rounded-lg px-3 py-2 text-lg font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>About</a>
-                    <a href="#blog" className="-mx-3 block rounded-lg px-3 py-2 text-lg font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Blog</a>
-                    <a href="#contact" className="-mx-3 block rounded-lg px-3 py-2 text-lg font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Contact</a>
-                    <Link to="/book" className="-mx-3 block rounded-lg px-3 py-2 text-lg font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Book Now</Link>
+                    <a href="#services" className="-mx-3 block rounded-lg px-3 py-2 text-lg/7 font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Services</a>
+                    <a href="#about" className="-mx-3 block rounded-lg px-3 py-2 text-lg/7 font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>About</a>
+                    <a href="#blog" className="-mx-3 block rounded-lg px-3 py-2 text-lg/7 font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Blog</a>
+                    <a href="#contact" className="-mx-3 block rounded-lg px-3 py-2 text-lg/7 font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Contact</a>
+                    <Link to="/book" className="-mx-3 block rounded-lg px-3 py-2 text-lg/7 font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Book Now</Link>
                   </div>
                   <div className="py-6">
                     {user ? (
                       <>
-                        <Link to="/profile" className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Profile ({user.first_name})</Link>
-                        <button onClick={() => { setShowLogoutModal(true); setMobileMenuOpen(false); }} className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/5 w-full text-left">Log out</button>
+                        <Link to="/profile" className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Profile ({user.first_name})</Link>
+                        <button onClick={() => { setShowLogoutModal(true); setMobileMenuOpen(false); }} className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-white/5 w-full text-left">Log out</button>
                       </>
                     ) : (
                       <>
-                        <Link to="/login" className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
-                        <Link to="/register" className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Register</Link>
+                        <Link to="/login" className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
+                        <Link to="/register" className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-white/5" onClick={() => setMobileMenuOpen(false)}>Register</Link>
                       </>
                     )}
                   </div>

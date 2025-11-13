@@ -10,8 +10,8 @@ module.exports = function(app) {
     next();
   });
 
-  // GET /api/admin/dashboard - Get dashboard statistics (admin only)
-  app.get('/api/admin/dashboard', [verifyToken, isAdmin], controller.getDashboardStats);
+  // GET /api/admin/stats - Get dashboard statistics (admin only)
+  app.get('/api/admin/stats', [verifyToken, isAdmin], controller.getDashboardStats);
 
   // GET /api/admin/users - Get all users (admin only)
   app.get('/api/admin/users', [verifyToken, isAdmin], controller.getAllUsers);
@@ -19,9 +19,12 @@ module.exports = function(app) {
   // POST /api/admin/staff - Create admin/staff account (admin only)
   app.post('/api/admin/staff', [verifyToken, isAdmin], controller.createStaffAccount);
 
+  // PUT /api/admin/staff/:id - Update staff account (admin only)
+  app.put('/api/admin/staff/:id', [verifyToken, isAdmin], controller.updateStaffAccount);
+
   // PUT /api/admin/users/:id/role - Update user role (admin only)
   app.put('/api/admin/users/:id/role', [verifyToken, isAdmin], controller.updateUserRole);
 
-  // DELETE /api/admin/users/:id - Delete user (admin only)
-  app.delete('/api/admin/users/:id', [verifyToken, isAdmin], controller.deleteUser);
+  // DELETE /api/admin/staff/:id - Delete user (admin only)
+  app.delete('/api/admin/staff/:id', [verifyToken, isAdmin], controller.deleteUser);
 };

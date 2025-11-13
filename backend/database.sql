@@ -52,8 +52,11 @@ CREATE TABLE IF NOT EXISTS appointments (
   service_id INT NOT NULL,
   appointment_date DATE NOT NULL,
   appointment_time TIME NOT NULL,
-  status ENUM('pending', 'confirmed', 'cancelled', 'completed') DEFAULT 'pending',
+  status ENUM('pending', 'confirmed', 'cancelled', 'completed', 'declined') DEFAULT 'pending',
   payment_status ENUM('paid', 'unpaid', 'pending') DEFAULT 'pending',
+  payment_method ENUM('gcash', 'paypal', 'clinic') DEFAULT 'clinic',
+  payment_reference VARCHAR(255) DEFAULT NULL,
+  paid_at TIMESTAMP NULL DEFAULT NULL,
   notes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -71,6 +74,12 @@ CREATE TABLE IF NOT EXISTS appointments (
 -- Insert admin user (password: admin123)
 INSERT INTO users (first_name, last_name, email, password, role) VALUES
 ('Admin', 'User', 'admin@dentalcare.com', '$2a$10$xC0n3Z8YQN1YH9LqL.j/Q.EJ2Y8lH.YPz.V0KGqRGxQJvZ7JKz5Wm', 'admin');
+
+INSERT INTO `users` (`id`, `first_name`, `last_name`, `email`, `password`, `role`) VALUES
+-- example admin account
+-- username/email: admin or admin@dentalcare.com
+-- password: admin@2025
+(1, 'Admin', 'Administrator', 'admin@dentalcare.com', '$2y$10$o01xgUutpzACMlQCLAqbruPigWaQi7RkwLH1W7vZW/uVPmZEOFyG6', 'admin');
 
 -- Insert sample doctors
 INSERT INTO doctors (name, specialization, email, phone, availability) VALUES

@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import UserLanding from './pages/UserLanding';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminAppointments from './pages/AdminAppointments';
 import StaffDashboard from './pages/StaffDashboard';
 import BookAppointment from './pages/BookAppointment';
 
@@ -44,12 +45,25 @@ function App() {
     );
   }
 
+  // Root redirect component
+  const RootRedirect = () => {
+    if (!user) {
+      return <UserLanding />;
+    }
+    if (user.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else if (user.role === 'staff') {
+      return <Navigate to="/staff/dashboard" replace />;
+    }
+    return <UserLanding />;
+  };
+
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
       <Router>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<UserLanding />} />
+          <Route path="/" element={<RootRedirect />} />
           <Route
             path="/login"
             element={
@@ -67,11 +81,11 @@ function App() {
             }
           />
 
-          {/* Protected Routes */}
+          {/* Protected Routes - User Only (exclude admin and staff) */}
           <Route
             path="/profile"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute excludeRoles={['admin', 'staff']}>
                 <Profile />
               </ProtectedRoute>
             }
@@ -79,7 +93,7 @@ function App() {
           <Route
             path="/book"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute excludeRoles={['admin', 'staff']}>
                 <BookAppointment />
               </ProtectedRoute>
             }
@@ -91,6 +105,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/appointments"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminAppointments />
               </ProtectedRoute>
             }
           />

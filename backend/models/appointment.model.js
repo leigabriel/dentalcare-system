@@ -24,9 +24,11 @@ class Appointment {
   static async getAll() {
     const sql = `
       SELECT a.*, 
+        CONCAT(u.first_name, ' ', u.last_name) as patient_name,
         u.first_name as patient_first_name, u.last_name as patient_last_name, u.email as patient_email,
         d.name as doctor_name, d.specialization,
-        s.name as service_name, s.price, s.duration_mins
+        s.name as service_name, s.price as service_price, s.duration_mins,
+        a.appointment_time as time_slot
       FROM appointments a
       LEFT JOIN users u ON a.user_id = u.id
       LEFT JOIN doctors d ON a.doctor_id = d.id
