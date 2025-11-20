@@ -6,178 +6,178 @@ const bcrypt = require('bcryptjs');
 
 // Get dashboard statistics
 exports.getDashboardStats = async (req, res) => {
-  try {
-    const db = require('../config/db.config');
-    
-    // Get counts
-    const [users] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'user'");
-    const [staff] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'staff'");
-    const [admins] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'");
-    const [appointments] = await db.query("SELECT COUNT(*) as count FROM appointments");
-    const [doctors] = await db.query("SELECT COUNT(*) as count FROM doctors");
-    const [services] = await db.query("SELECT COUNT(*) as count FROM services");
-    const [pendingAppointments] = await db.query("SELECT COUNT(*) as count FROM appointments WHERE status = 'pending'");
-    const [confirmedAppointments] = await db.query("SELECT COUNT(*) as count FROM appointments WHERE status = 'confirmed'");
+    try {
+        const db = require('../config/db.config');
 
-    res.status(200).send({
-      totalUsers: users[0].count,
-      totalStaff: staff[0].count,
-      totalAdmins: admins[0].count,
-      totalAppointments: appointments[0].count,
-      totalDoctors: doctors[0].count,
-      totalServices: services[0].count,
-      pendingAppointments: pendingAppointments[0].count,
-      confirmedAppointments: confirmedAppointments[0].count
-    });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
+        // Get counts
+        const [users] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'user'");
+        const [staff] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'staff'");
+        const [admins] = await db.query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'");
+        const [appointments] = await db.query("SELECT COUNT(*) as count FROM appointments");
+        const [doctors] = await db.query("SELECT COUNT(*) as count FROM doctors");
+        const [services] = await db.query("SELECT COUNT(*) as count FROM services");
+        const [pendingAppointments] = await db.query("SELECT COUNT(*) as count FROM appointments WHERE status = 'pending'");
+        const [confirmedAppointments] = await db.query("SELECT COUNT(*) as count FROM appointments WHERE status = 'confirmed'");
+
+        res.status(200).send({
+            totalUsers: users[0].count,
+            totalStaff: staff[0].count,
+            totalAdmins: admins[0].count,
+            totalAppointments: appointments[0].count,
+            totalDoctors: doctors[0].count,
+            totalServices: services[0].count,
+            pendingAppointments: pendingAppointments[0].count,
+            confirmedAppointments: confirmedAppointments[0].count
+        });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
 };
 
 // Get all users
 exports.getAllUsers = async (req, res) => {
-  try {
-    const db = require('../config/db.config');
-    const [users] = await db.query('SELECT id, first_name, last_name, email, phone, role, created_at FROM users ORDER BY created_at DESC');
-    res.status(200).send(users);
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
+    try {
+        const db = require('../config/db.config');
+        const [users] = await db.query('SELECT id, first_name, last_name, email, phone, role, created_at FROM users ORDER BY created_at DESC');
+        res.status(200).send(users);
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
 };
 
 // Create admin or staff account
 exports.createStaffAccount = async (req, res) => {
-  const { first_name, last_name, email, password, phone, role } = req.body;
+    const { first_name, last_name, email, password, phone, role } = req.body;
 
-  // Validate role
-  if (role !== 'admin' && role !== 'staff') {
-    return res.status(400).send({ message: 'Invalid role. Must be admin or staff.' });
-  }
-
-  try {
-    // Check if email already exists
-    const existingUser = await User.findByEmail(email);
-    if (existingUser) {
-      return res.status(400).send({ message: 'Failed! Email is already in use.' });
+    // Validate role
+    if (role !== 'admin' && role !== 'staff') {
+        return res.status(400).send({ message: 'Invalid role. Must be admin or staff.' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    try {
+        // Check if email already exists
+        const existingUser = await User.findByEmail(email);
+        if (existingUser) {
+            return res.status(400).send({ message: 'Failed! Email is already in use.' });
+        }
 
-    // Create user
-    const userId = await User.create({
-      first_name,
-      last_name,
-      email,
-      password: hashedPassword,
-      phone,
-      role
-    });
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    res.status(201).send({ message: `${role} account created successfully!`, userId });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
+        // Create user
+        const userId = await User.create({
+            first_name,
+            last_name,
+            email,
+            password: hashedPassword,
+            phone,
+            role
+        });
+
+        res.status(201).send({ message: `${role} account created successfully!`, userId });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
 };
 
 // Update staff account
 exports.updateStaffAccount = async (req, res) => {
-  const { first_name, last_name, email, password, role } = req.body;
+    const { first_name, last_name, email, password, role } = req.body;
 
-  // Validate role
-  if (role && role !== 'admin' && role !== 'staff') {
-    return res.status(400).send({ message: 'Invalid role. Must be admin or staff.' });
-  }
-
-  try {
-    const db = require('../config/db.config');
-    
-    // Check if user exists
-    const [users] = await db.query('SELECT id FROM users WHERE id = ?', [req.params.id]);
-    if (users.length === 0) {
-      return res.status(404).send({ message: 'User not found.' });
+    // Validate role
+    if (role && role !== 'admin' && role !== 'staff') {
+        return res.status(400).send({ message: 'Invalid role. Must be admin or staff.' });
     }
 
-    // Check if email is being changed and already exists
-    if (email) {
-      const [existingEmail] = await db.query('SELECT id FROM users WHERE email = ? AND id != ?', [email, req.params.id]);
-      if (existingEmail.length > 0) {
-        return res.status(400).send({ message: 'Email is already in use.' });
-      }
-    }
+    try {
+        const db = require('../config/db.config');
 
-    // Build update query
-    let updateFields = [];
-    let updateValues = [];
+        // Check if user exists
+        const [users] = await db.query('SELECT id FROM users WHERE id = ?', [req.params.id]);
+        if (users.length === 0) {
+            return res.status(404).send({ message: 'User not found.' });
+        }
 
-    if (first_name) {
-      updateFields.push('first_name = ?');
-      updateValues.push(first_name);
-    }
-    if (last_name) {
-      updateFields.push('last_name = ?');
-      updateValues.push(last_name);
-    }
-    if (email) {
-      updateFields.push('email = ?');
-      updateValues.push(email);
-    }
-    if (role) {
-      updateFields.push('role = ?');
-      updateValues.push(role);
-    }
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      updateFields.push('password = ?');
-      updateValues.push(hashedPassword);
-    }
+        // Check if email is being changed and already exists
+        if (email) {
+            const [existingEmail] = await db.query('SELECT id FROM users WHERE email = ? AND id != ?', [email, req.params.id]);
+            if (existingEmail.length > 0) {
+                return res.status(400).send({ message: 'Email is already in use.' });
+            }
+        }
 
-    if (updateFields.length === 0) {
-      return res.status(400).send({ message: 'No fields to update.' });
+        // Build update query
+        let updateFields = [];
+        let updateValues = [];
+
+        if (first_name) {
+            updateFields.push('first_name = ?');
+            updateValues.push(first_name);
+        }
+        if (last_name) {
+            updateFields.push('last_name = ?');
+            updateValues.push(last_name);
+        }
+        if (email) {
+            updateFields.push('email = ?');
+            updateValues.push(email);
+        }
+        if (role) {
+            updateFields.push('role = ?');
+            updateValues.push(role);
+        }
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            updateFields.push('password = ?');
+            updateValues.push(hashedPassword);
+        }
+
+        if (updateFields.length === 0) {
+            return res.status(400).send({ message: 'No fields to update.' });
+        }
+
+        updateValues.push(req.params.id);
+        const query = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
+        await db.query(query, updateValues);
+
+        res.status(200).send({ message: 'User updated successfully!' });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
     }
-
-    updateValues.push(req.params.id);
-    const query = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
-    await db.query(query, updateValues);
-
-    res.status(200).send({ message: 'User updated successfully!' });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
 };
 
 // Update user role
 exports.updateUserRole = async (req, res) => {
-  const { role } = req.body;
+    const { role } = req.body;
 
-  // Validate role
-  if (!['user', 'staff', 'admin'].includes(role)) {
-    return res.status(400).send({ message: 'Invalid role.' });
-  }
-
-  try {
-    const db = require('../config/db.config');
-    const [result] = await db.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).send({ message: 'User not found.' });
+    // Validate role
+    if (!['user', 'staff', 'admin'].includes(role)) {
+        return res.status(400).send({ message: 'Invalid role.' });
     }
 
-    res.status(200).send({ message: 'User role updated successfully!' });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
+    try {
+        const db = require('../config/db.config');
+        const [result] = await db.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send({ message: 'User not found.' });
+        }
+
+        res.status(200).send({ message: 'User role updated successfully!' });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
 };
 
 // Delete user
 exports.deleteUser = async (req, res) => {
-  try {
-    const affectedRows = await User.delete(req.params.id);
-    if (affectedRows === 0) {
-      return res.status(404).send({ message: 'User not found.' });
+    try {
+        const affectedRows = await User.delete(req.params.id);
+        if (affectedRows === 0) {
+            return res.status(404).send({ message: 'User not found.' });
+        }
+        res.status(200).send({ message: 'User deleted successfully!' });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
     }
-    res.status(200).send({ message: 'User deleted successfully!' });
-  } catch (err) {
-    res.status(500).send({ message: err.message });
-  }
 };

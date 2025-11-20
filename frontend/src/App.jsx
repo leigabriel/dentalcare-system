@@ -19,120 +19,120 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-    setLoading(false);
-  }, []);
+    useEffect(() => {
+        const currentUser = authService.getCurrentUser();
+        setUser(currentUser);
+        setLoading(false);
+    }, []);
 
-  const login = (userData) => {
-    setUser(userData);
-  };
+    const login = (userData) => {
+        setUser(userData);
+    };
 
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-  };
+    const logout = () => {
+        authService.logout();
+        setUser(null);
+    };
 
-  if (loading) {
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-xl">Loading...</div>
+            </div>
+        );
+    }
+
+    // Root redirect component
+    const RootRedirect = () => {
+        if (!user) {
+            return <UserLanding />;
+        }
+        if (user.role === 'admin') {
+            return <Navigate to="/admin/dashboard" replace />;
+        } else if (user.role === 'staff') {
+            return <Navigate to="/staff/dashboard" replace />;
+        }
+        return <UserLanding />;
+    };
+
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
-      </div>
+        <AuthContext.Provider value={{ user, login, logout }}>
+            <Router>
+                <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<RootRedirect />} />
+                    <Route
+                        path="/login"
+                        element={
+                            <PublicRoute>
+                                <Login />
+                            </PublicRoute>
+                        }
+                    />
+                    <Route
+                        path="/register"
+                        element={
+                            <PublicRoute>
+                                <Register />
+                            </PublicRoute>
+                        }
+                    />
+
+                    {/* Protected Routes - User Only (exclude admin and staff) */}
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute excludeRoles={['admin', 'staff']}>
+                                <Profile />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/book"
+                        element={
+                            <ProtectedRoute excludeRoles={['admin', 'staff']}>
+                                <BookAppointment />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Admin Routes */}
+                    <Route
+                        path="/admin/dashboard"
+                        element={
+                            <ProtectedRoute requiredRole="admin">
+                                <AdminDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin/appointments"
+                        element={
+                            <ProtectedRoute requiredRole="admin">
+                                <AdminAppointments />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Staff Routes */}
+                    <Route
+                        path="/staff/dashboard"
+                        element={
+                            <ProtectedRoute requiredRole={['staff', 'admin']}>
+                                <StaffDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Catch all */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </Router>
+        </AuthContext.Provider>
     );
-  }
-
-  // Root redirect component
-  const RootRedirect = () => {
-    if (!user) {
-      return <UserLanding />;
-    }
-    if (user.role === 'admin') {
-      return <Navigate to="/admin/dashboard" replace />;
-    } else if (user.role === 'staff') {
-      return <Navigate to="/staff/dashboard" replace />;
-    }
-    return <UserLanding />;
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<RootRedirect />} />
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            }
-          />
-
-          {/* Protected Routes - User Only (exclude admin and staff) */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute excludeRoles={['admin', 'staff']}>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/book"
-            element={
-              <ProtectedRoute excludeRoles={['admin', 'staff']}>
-                <BookAppointment />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Admin Routes */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/appointments"
-            element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminAppointments />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Staff Routes */}
-          <Route
-            path="/staff/dashboard"
-            element={
-              <ProtectedRoute requiredRole={['staff', 'admin']}>
-                <StaffDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthContext.Provider>
-  );
 }
 
 export default App;
